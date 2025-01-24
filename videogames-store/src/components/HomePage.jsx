@@ -9,6 +9,7 @@ import {
   Container,
   IconButton,
   Divider,
+  Paper
 } from '@mui/material';
 import { 
   ArrowForward as ArrowForwardIcon,
@@ -87,109 +88,131 @@ const platforms = [
 
 const HomePage = () => {
   return (
-    <Box sx={{ 
-      width: '100vw',
-      margin: 0,
-      padding: 0,
-      overflowX: 'hidden',
-      backgroundColor: '#f5f5f5'
-    }}>
+    <Box 
+      component="div"
+      sx={{ 
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        width: '100%',
+        minHeight: '100vh',
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden'
+      }}
+    >
       {/* Hero Section */}
       <Box
         sx={{
           width: '100%',
           height: '100vh',
           display: 'flex',
-          alignItems: 'center',
           background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%)',
           color: 'white',
           position: 'relative',
           overflow: 'hidden',
+          margin: 0,
+          padding: 0
         }}
       >
-        <Grid 
-          container 
-          sx={{ 
-            width: '100%',
-            height: '100%',
-            margin: 0,
-            alignItems: 'center',
-            px: { xs: 2, sm: 4, md: 6, lg: 8 }
-          }}
-        >
-          {/* Hero Content - Left Side */}
-          <Grid item xs={12} md={6} sx={{ 
-            py: { xs: 6, md: 0 },
-            mt: { xs: '64px', sm: '70px' } // Espacio para la navbar
-          }}>
-            <Stack spacing={4} sx={{ maxWidth: '600px', mx: 'auto' }}>
-              <Typography 
-                variant="h1" 
-                sx={{ 
-                  fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem', lg: '5rem' }, 
-                  fontWeight: 800, 
-                  lineHeight: 1.1,
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
-                }}
-              >
-                Level Up<br />Your<br />Gaming<br />Experience
-              </Typography>
-              <Typography 
-                variant="h5" 
-                sx={{ 
-                  fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
-                  opacity: 0.9,
-                  maxWidth: '500px'
-                }}
-              >
-                Discover the latest and greatest games at unbeatable prices
-              </Typography>
-              <Button
-                variant="contained"
-                size="large"
-                endIcon={<ArrowForwardIcon />}
-                sx={{
-                  width: 'fit-content',
-                  fontSize: { xs: '1rem', sm: '1.1rem' },
-                  py: 2,
-                  px: 6,
-                  borderRadius: '50px',
-                  background: 'linear-gradient(45deg, #2196f3 30%, #21cbf3 90%)',
-                  boxShadow: '0 8px 16px rgba(33,150,243,0.3)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #1976d2 30%, #00bcd4 90%)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 12px 20px rgba(33,150,243,0.4)',
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                Shop Now
-              </Button>
-            </Stack>
+        <Container maxWidth={false} sx={{ 
+          height: '100%', 
+          display: 'flex',
+          alignItems: 'center',
+          px: { xs: 2, sm: 4, md: 6, lg: 8 },
+          mt: { xs: '64px', sm: '70px' }
+        }}>
+          <Grid 
+            container 
+            spacing={4}
+            alignItems="center"
+            sx={{ 
+              width: '100%',
+              margin: 0,
+              height: 'auto'
+            }}
+          >
+            {/* Hero Content - Left Side */}
+            <Grid item xs={12} md={6}>
+              <Box sx={{ textAlign: { xs: 'center', md: 'left' }, mb: { xs: 4, md: 0 } }}>
+                <Typography 
+                  variant="h1" 
+                  sx={{ 
+                    fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem', lg: '5rem' }, 
+                    fontWeight: 800, 
+                    lineHeight: 1.1,
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+                    mb: 3
+                  }}
+                >
+                  Level Up<br />Your<br />Gaming<br />Experience
+                </Typography>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.5rem' }, 
+                    opacity: 0.9,
+                    mb: 4
+                  }}
+                >
+                  Discover the latest and greatest games at unbeatable prices
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="large"
+                  endIcon={<ArrowForwardIcon />}
+                  sx={{
+                    backgroundColor: '#2196f3',
+                    fontSize: '1.2rem',
+                    py: 1.5,
+                    px: 4,
+                    borderRadius: '30px',
+                    '&:hover': {
+                      backgroundColor: '#1976d2'
+                    }
+                  }}
+                >
+                  Shop Now
+                </Button>
+              </Box>
+            </Grid>
+            
+            {/* Hero Features - Right Side */}
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={2}>
+                {features.map((feature, index) => (
+                  <Grid item xs={12} sm={6} key={index}>
+                    <Paper
+                      elevation={3}
+                      sx={{
+                        p: 3,
+                        height: '100%',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: '16px',
+                        transition: 'transform 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-5px)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ color: '#90caf9', mb: 2 }}>
+                        {feature.icon}
+                      </Box>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                        {feature.title}
+                      </Typography>
+                      <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                        {feature.description}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Grid>
           </Grid>
-
-          {/* Hero Image - Right Side */}
-          <Grid item xs={12} md={6} sx={{ py: { xs: 4, md: 6 } }}>
-            <Box
-              component="img"
-              src="/hero-bg.jpg"
-              alt="Gaming Setup"
-              sx={{
-                width: '100%',
-                height: { xs: '300px', sm: '400px', md: '500px' },
-                objectFit: 'cover',
-                borderRadius: { xs: 2, md: 4 },
-                boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
-                transform: { md: 'perspective(1000px) rotateY(-5deg)' },
-                transition: 'transform 0.5s ease',
-                '&:hover': {
-                  transform: { md: 'perspective(1000px) rotateY(0deg)' }
-                }
-              }}
-            />
-          </Grid>
-        </Grid>
+        </Container>
       </Box>
 
       {/* Features Section */}

@@ -136,17 +136,33 @@ const GamesList = () => {
   ];
 
   return (
-    <Box sx={{ height: 400, width: '100%' }}>
+    <Box 
+      sx={{ 
+        width: '100%', 
+        height: '100%',
+        backgroundColor: 'background.paper',
+        borderRadius: 1,
+        overflow: 'hidden'
+      }}
+    >
       <DataGrid
         rows={games}
         columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
         getRowId={(row) => row.game_id}
         loading={loading}
-        components={{
-          Toolbar: GridToolbar,
+        slots={{
+          toolbar: GridToolbar,
         }}
+        initialState={{
+          pagination: {
+            paginationModel: {
+              pageSize: 10,
+            },
+          },
+        }}
+        pageSizeOptions={[5, 10, 25]}
+        checkboxSelection={false}
+        disableRowSelectionOnClick
       />
 
       <Dialog
