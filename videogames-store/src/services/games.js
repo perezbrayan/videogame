@@ -5,7 +5,7 @@ const API_URL = 'http://localhost:5000/api';
 export const getGames = async () => {
   try {
     const response = await axios.get(`${API_URL}/games`);
-    return response.data;
+    return response.data.games;
   } catch (error) {
     throw error.response?.data || { message: 'Error al obtener los juegos' };
   }

@@ -12,15 +12,32 @@ import {
   IconButton,
   Pagination,
   CircularProgress,
-  Alert
+  Alert,
+  ToggleButton,
+  ToggleButtonGroup,
+  Chip,
+  Stack,
+  Button
 } from '@mui/material';
 import { 
   Search as SearchIcon,
   FilterList as FilterIcon,
+  SportsEsports as ConsoleIcon,
+  Computer as PCIcon,
+  Gamepad as NintendoIcon
 } from '@mui/icons-material';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import GameCard from './GameCard';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+const platforms = [
+  { id: 'all', name: 'Todas las plataformas', icon: <ConsoleIcon /> },
+  { id: 'ps5', name: 'PlayStation 5', icon: <ConsoleIcon /> },
+  { id: 'xbox', name: 'Xbox Series X', icon: <ConsoleIcon /> },
+  { id: 'pc', name: 'PC', icon: <PCIcon /> },
+  { id: 'switch', name: 'Nintendo Switch', icon: <NintendoIcon /> }
+];
 
 const GamesPage = () => {
   const [games, setGames] = useState([]);
@@ -29,18 +46,42 @@ const GamesPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('popularity');
   const [page, setPage] = useState(1);
-  const gamesPerPage = 12;
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const [platform, setPlatform] = useState(searchParams.get('platform') || 'all');
+  const [filteredGames, setFilteredGames] = useState([]);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    limit: 50,
+    offset: 0
+  });
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Actualizar el estado de la plataforma cuando cambia la URL
+    const platformParam = searchParams.get('platform');
+    if (platformParam) {
+      setPlatform(platformParam);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const fetchGames = async () => {
       try {
         setLoading(true);
         const response = await axios.get('http://localhost:5000/api/games');
-        setGames(response.data);
+        // Actualizado para manejar la nueva estructura de respuesta
+        setGames(response.data.games || []);
+        setPagination(response.data.pagination || {
+          total: 0,
+          limit: 50,
+          offset: 0
+        });
         setError(null);
       } catch (err) {
-        setError('Error al cargar los juegos');
         console.error('Error fetching games:', err);
+        setError('Error al cargar los juegos');
       } finally {
         setLoading(false);
       }
@@ -48,6 +89,31 @@ const GamesPage = () => {
 
     fetchGames();
   }, []);
+
+  useEffect(() => {
+    if (Array.isArray(games)) {
+      setFilteredGames(
+        games
+          .filter(game => 
+            (game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            game.description?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            (platform === 'all' || game.platform === platform)
+          )
+          .sort((a, b) => {
+            switch (sortBy) {
+              case 'price-asc':
+                return a.base_price - b.base_price;
+              case 'price-desc':
+                return b.base_price - a.base_price;
+              case 'name':
+                return a.title.localeCompare(b.title);
+              default:
+                return 0;
+            }
+          })
+      );
+    }
+  }, [games, platform, searchTerm, sortBy]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
@@ -63,61 +129,57 @@ const GamesPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const filteredGames = games
-    .filter(game => 
-      game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      game.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'price-asc':
-          return a.base_price - b.base_price;
-        case 'price-desc':
-          return b.base_price - a.base_price;
-        case 'name':
-          return a.title.localeCompare(b.title);
-        default:
-          return 0;
-      }
-    });
+  const handlePlatformChange = (event) => {
+    const newPlatform = event.target.value;
+    setPlatform(newPlatform);
+  };
 
-  const pageCount = Math.ceil(filteredGames.length / gamesPerPage);
+  const pageCount = Math.ceil(filteredGames.length / pagination.limit);
   const displayedGames = filteredGames.slice(
-    (page - 1) * gamesPerPage,
-    page * gamesPerPage
+    (page - 1) * pagination.limit,
+    page * pagination.limit
   );
 
   if (loading) {
     return (
-      <Box 
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%)'
-        }}
-      >
-        <CircularProgress sx={{ color: 'white' }} size={60} />
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '200px' 
+      }}>
+        <CircularProgress />
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box 
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%)',
-          p: 3
-        }}
-      >
-        <Alert severity="error" sx={{ maxWidth: 600 }}>
-          {error}
-        </Alert>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
+  if (games.length === 0) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '200px',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <Typography variant="h6" color="text.secondary">
+          No hay juegos disponibles para esta plataforma
+        </Typography>
+        <Button 
+          variant="contained" 
+          onClick={() => setPlatform('all')}
+        >
+          Ver todos los juegos
+        </Button>
       </Box>
     );
   }
@@ -126,14 +188,35 @@ const GamesPage = () => {
     <Box
       sx={{
         minHeight: '100vh',
+        width: '100vw',
         background: 'linear-gradient(135deg, #1a237e 0%, #0d47a1 100%)',
-        pt: { xs: 2, sm: 4 },
-        pb: 6
+        margin: 0,
+        padding: 0,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        overflowX: 'hidden',
+        paddingTop: '80px',
       }}
     >
-      <Container maxWidth="xl">
+      <Container 
+        disableGutters
+        maxWidth={false}
+        sx={{ 
+          margin: 0,
+          padding: 0,
+          width: '100%',
+          overflowX: 'hidden',
+        }}
+      >
         {/* Header Section */}
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
+        <Box sx={{ 
+          mb: 6, 
+          textAlign: 'center',
+          pt: { xs: 2, sm: 3 }
+        }}>
           <Typography
             variant="h2"
             sx={{
@@ -163,7 +246,7 @@ const GamesPage = () => {
             flexDirection: { xs: 'column', sm: 'row' },
             gap: 2,
             mb: 4,
-            px: 2,
+            px: { xs: 1, sm: 2 },
           }}
         >
           <TextField
@@ -238,13 +321,58 @@ const GamesPage = () => {
           </FormControl>
         </Box>
 
+        {/* Platform Filter Section */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2,
+            mb: 4,
+            px: { xs: 1, sm: 2 },
+          }}
+        >
+          <FormControl sx={{ minWidth: 200, mb: 3 }}>
+            <InputLabel id="platform-select-label">Plataforma</InputLabel>
+            <Select
+              labelId="platform-select-label"
+              value={platform}
+              label="Plataforma"
+              onChange={handlePlatformChange}
+              sx={{
+                color: 'white',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.23)',
+                },
+                '&:hover .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(255, 255, 255, 0.5)',
+                },
+                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'primary.main',
+                },
+                '& .MuiSvgIcon-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+              }}
+            >
+              <MenuItem value="all">Todas las plataformas</MenuItem>
+              <MenuItem value="ps5">PlayStation 5</MenuItem>
+              <MenuItem value="xbox">Xbox Series X</MenuItem>
+              <MenuItem value="pc">PC</MenuItem>
+              <MenuItem value="switch">Nintendo Switch</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
         {/* Games Grid */}
         <Grid 
           container 
           spacing={1}
           sx={{
             mb: 4,
-            px: 1,
+            mx: 0,
+            width: '100%',
+            margin: '0 !important',
+            padding: '0 !important',
           }}
         >
           {displayedGames.map((game) => (
@@ -258,7 +386,8 @@ const GamesPage = () => {
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
-                p: 0.5
+                p: 0.5,
+                margin: 0,
               }}
             >
               <GameCard game={game} />

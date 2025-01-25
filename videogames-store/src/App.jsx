@@ -17,6 +17,7 @@ const theme = createTheme({
           margin: 0,
           padding: 0,
           boxSizing: 'border-box',
+          fontFamily: "'Outfit', sans-serif",
         },
         html: {
           width: '100%',
@@ -95,12 +96,14 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: "'Outfit', sans-serif",
     h1: {
       fontWeight: 800,
+      fontFamily: "'Outfit', sans-serif",
     },
     h2: {
       fontWeight: 700,
+      fontFamily: "'Outfit', sans-serif",
       fontSize: {
         xs: '2.5rem',
         md: '3.75rem',
@@ -108,6 +111,7 @@ const theme = createTheme({
     },
     h3: {
       fontWeight: 700,
+      fontFamily: "'Outfit', sans-serif",
       fontSize: {
         xs: '2.2rem',
         md: '3rem',
@@ -115,6 +119,7 @@ const theme = createTheme({
     },
     h4: {
       fontWeight: 600,
+      fontFamily: "'Outfit', sans-serif",
       fontSize: {
         xs: '1.8rem',
         md: '2.5rem',
@@ -122,10 +127,18 @@ const theme = createTheme({
     },
     h5: {
       fontWeight: 500,
+      fontFamily: "'Outfit', sans-serif",
     },
     h6: {
       fontWeight: 500,
       fontSize: '1.1rem',
+      fontFamily: "'Outfit', sans-serif",
+    },
+    body1: {
+      fontFamily: "'Outfit', sans-serif",
+    },
+    body2: {
+      fontFamily: "'Outfit', sans-serif",
     },
   },
 });

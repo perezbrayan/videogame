@@ -28,7 +28,7 @@ const ProductGrid = () => {
     const fetchGames = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/games');
-        setGames(response.data);
+        setGames(response.data.games);
       } catch (error) {
         console.error('Error fetching games:', error);
       } finally {
@@ -38,6 +38,11 @@ const ProductGrid = () => {
 
     fetchGames();
   }, []);
+
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return 'https://via.placeholder.com/300x400?text=No+Image';
+    return `http://localhost:5000${imageUrl}`;
+  };
 
   if (loading) {
     return (
@@ -121,7 +126,7 @@ const ProductGrid = () => {
               <Box sx={{ position: 'relative', pt: '60%' }}>
                 <CardMedia
                   component="img"
-                  image={game.image_url ? `http://localhost:5000${game.image_url}` : 'https://via.placeholder.com/300x400'}
+                  image={getImageUrl(game.image_url)}
                   alt={game.title}
                   sx={{
                     position: 'absolute',
@@ -130,6 +135,10 @@ const ProductGrid = () => {
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
+                  }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
                   }}
                 />
               </Box>

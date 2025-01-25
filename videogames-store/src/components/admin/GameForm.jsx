@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   Box,
   TextField,
@@ -7,11 +8,14 @@ import {
   Grid,
   Paper,
   IconButton,
-  InputAdornment,
   Alert,
   Fade,
   Divider,
-  Stack
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
@@ -19,9 +23,17 @@ import {
   Save as SaveIcon,
   ArrowBack as BackIcon
 } from '@mui/icons-material';
-import { createGame } from '../../services/games';
 
-const GameForm = ({ onClose }) => {
+
+const GameForm = ({ onClose, initialData = null, onSubmit }) => {
+  // Validación de props al inicio del componente
+  if (typeof onSubmit !== 'function') {
+    console.error('GameForm: onSubmit debe ser una función, recibido:', onSubmit);
+  }
+  if (typeof onClose !== 'function') {
+    console.error('GameForm: onClose debe ser una función, recibido:', onClose);
+  }
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -29,11 +41,35 @@ const GameForm = ({ onClose }) => {
     release_date: '',
     base_price: '',
     stock: '',
-    image: null
+    image: null,
+    discount_percentage: 0,
+    platform: 'pc'
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+
+  // Cargar datos iniciales si estamos editando
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title || '',
+        description: initialData.description || '',
+        developer_name: initialData.developer_name || '',
+        release_date: initialData.release_date ? initialData.release_date.split('T')[0] : '',
+        base_price: initialData.base_price || '',
+        stock: initialData.stock || '',
+        discount_percentage: initialData.discount_percentage || 0,
+        platform: initialData.platform || 'pc',
+        image: null // La imagen se maneja de forma especial
+      });
+
+      // Si hay una imagen existente, mostrar la preview
+      if (initialData.image_url) {
+        setImagePreview(`http://localhost:5000/uploads/games/${initialData.image_url}`);
+      }
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,21 +99,63 @@ const GameForm = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('token');
+      console.log('Token encontrado:', !!token);
+      
+      if (!token) {
+        setError('No se encontró token de autenticación. Por favor, inicie sesión nuevamente.');
+        setSuccess(false);
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+        return;
+      }
+
       const formDataToSend = new FormData();
+      
+      // Agregar todos los campos al FormData
       Object.keys(formData).forEach(key => {
-        formDataToSend.append(key, formData[key]);
+        if (key === 'image' && formData[key]) {
+          formDataToSend.append('image', formData[key]);
+        } else if (key !== 'image') {
+          formDataToSend.append(key, formData[key]);
+        }
       });
 
-      await createGame(formDataToSend);
+      // Log para debug
+      console.log('Datos a enviar:', Object.fromEntries(formDataToSend));
+
+      if (typeof onSubmit !== 'function') {
+        throw new Error('onSubmit prop no es una función válida');
+      }
+      
+      await onSubmit(formDataToSend);
+      
       setSuccess(true);
       setError(null);
+      
       setTimeout(() => {
-        onClose();
-      }, 2000);
+        if (typeof onClose === 'function') {
+          onClose();
+        }
+      }, 1500);
     } catch (err) {
-      setError(err.message || 'Error al crear el juego');
+      console.error('Error al guardar el juego:', err);
+      setSuccess(false);
+      
+      if (err.response?.status === 401) {
+        setError('Sesión expirada. Por favor, inicie sesión nuevamente.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } else {
+        setError(err.message || err.response?.data?.message || 'Error al guardar el juego');
+      }
     }
   };
+
+
+
 
   return (
     <Fade in={true}>
@@ -101,7 +179,7 @@ const GameForm = ({ onClose }) => {
                 <BackIcon />
               </IconButton>
               <Typography variant="h5" component="h2">
-                Nuevo Juego
+                {initialData ? 'Editar Juego' : 'Nuevo Juego'}
               </Typography>
             </Stack>
             <IconButton onClick={onClose} color="default">
@@ -123,45 +201,99 @@ const GameForm = ({ onClose }) => {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <Grid container spacing={2}>
               <Grid item xs={12} md={8}>
-                <TextField
-                  fullWidth
-                  label="Título del Juego"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Descripción"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                  multiline
-                  rows={4}
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Desarrollador"
-                  name="developer_name"
-                  value={formData.developer_name}
-                  onChange={handleChange}
-                  required
-                  variant="outlined"
-                  sx={{ mb: 2 }}
-                />
-
                 <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Título del Juego"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      required
+                      variant="outlined"
+                      sx={{ mb: 2 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Descripción"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      multiline
+                      rows={4}
+                      variant="outlined"
+                      sx={{ mb: 2 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth required>
+                      <InputLabel id="platform-label">Plataforma</InputLabel>
+                      <Select
+                        labelId="platform-label"
+                        name="platform"
+                        value={formData.platform}
+                        label="Plataforma"
+                        onChange={handleChange}
+                      >
+                        <MenuItem value="ps5">PlayStation 5</MenuItem>
+                        <MenuItem value="xbox">Xbox Series X</MenuItem>
+                        <MenuItem value="pc">PC</MenuItem>
+                        <MenuItem value="switch">Nintendo Switch</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Precio Base"
+                      name="base_price"
+                      type="number"
+                      value={formData.base_price}
+                      onChange={handleChange}
+                      required
+                      inputProps={{ 
+                        min: "0",
+                        step: "0.01"
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Stock"
+                      name="stock"
+                      type="number"
+                      value={formData.stock}
+                      onChange={handleChange}
+                      required
+                      variant="outlined"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Porcentaje de Descuento"
+                      name="discount_percentage"
+                      type="number"
+                      value={formData.discount_percentage}
+                      onChange={handleChange}
+                      inputProps={{ 
+                        min: "0",
+                        max: "100",
+                        step: "1"
+                      }}
+                      helperText={
+                        formData.base_price && formData.discount_percentage > 0 
+                          ? `Precio final: $${(formData.base_price * (1 - formData.discount_percentage / 100)).toFixed(2)}`
+                          : "Sin descuento"
+                      }
+                    />
+                  </Grid>
                   <Grid item xs={12} sm={4}>
                     <TextField
                       fullWidth
@@ -178,27 +310,9 @@ const GameForm = ({ onClose }) => {
                   <Grid item xs={12} sm={4}>
                     <TextField
                       fullWidth
-                      label="Precio Base"
-                      name="base_price"
-                      type="number"
-                      value={formData.base_price}
-                      onChange={handleChange}
-                      required
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">$</InputAdornment>
-                        ),
-                      }}
-                      variant="outlined"
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <TextField
-                      fullWidth
-                      label="Stock"
-                      name="stock"
-                      type="number"
-                      value={formData.stock}
+                      label="Desarrollador"
+                      name="developer_name"
+                      value={formData.developer_name}
                       onChange={handleChange}
                       required
                       variant="outlined"
@@ -290,14 +404,20 @@ const GameForm = ({ onClose }) => {
                 color="primary"
                 startIcon={<SaveIcon />}
               >
-                Guardar Juego
+                {initialData ? 'Guardar Cambios' : 'Crear Juego'}
               </Button>
             </Box>
-          </form>
+          </Box>
         </Paper>
       </Box>
     </Fade>
   );
+};
+
+GameForm.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  initialData: PropTypes.object
 };
 
 export default GameForm;

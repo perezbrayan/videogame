@@ -32,7 +32,10 @@ const GameCard = ({ game }) => {
     return `${API_BASE_URL}${imageUrl}`;
   };
 
-  const discountPercentage = Math.floor(Math.random() * 60); // Simulación de descuento
+  const hasDiscount = game.discount_percentage && game.discount_percentage > 0;
+  const finalPrice = hasDiscount 
+    ? game.base_price * (1 - game.discount_percentage / 100)
+    : game.base_price;
 
   return (
     <Fade in={true}>
@@ -63,24 +66,26 @@ const GameCard = ({ game }) => {
         onClick={handleCardClick}
       >
         {/* Discount Badge */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -10,
-            left: -10,
-            backgroundColor: '#ff4444',
-            color: 'white',
-            padding: '4px 12px',
-            borderRadius: '20px',
-            fontWeight: 'bold',
-            fontSize: '0.875rem',
-            zIndex: 2,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-            transform: 'rotate(-10deg)',
-          }}
-        >
-          -{discountPercentage}% OFF
-        </Box>
+        {hasDiscount && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: -10,
+              left: -10,
+              backgroundColor: '#ff4444',
+              color: 'white',
+              padding: '4px 12px',
+              borderRadius: '20px',
+              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              zIndex: 2,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+              transform: 'rotate(-10deg)',
+            }}
+          >
+            -{game.discount_percentage}% OFF
+          </Box>
+        )}
 
         {/* Platform Badge */}
         <Box
@@ -200,40 +205,41 @@ const GameCard = ({ game }) => {
             flexDirection: 'column',
             mt: 0.5
           }}>
-            <Typography
-              variant="caption"
-              sx={{
-                color: 'rgba(255,255,255,0.5)',
-                fontSize: '0.7rem',
-              }}
-            >
-              Desde
-            </Typography>
-            
-            <Box sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-            }}>
+            {hasDiscount ? (
+              <>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'rgba(255,255,255,0.6)',
+                    textDecoration: 'line-through',
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  ${game.base_price}
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: '#4caf50',
+                    fontWeight: 'bold',
+                    fontSize: '1rem'
+                  }}
+                >
+                  ${finalPrice.toFixed(2)}
+                </Typography>
+              </>
+            ) : (
               <Typography
+                variant="h6"
                 sx={{
-                  color: 'rgba(255,255,255,0.6)',
-                  textDecoration: 'line-through',
-                  fontSize: '0.75rem',
-                }}
-              >
-                {formatCurrency(game.base_price * (1 + discountPercentage/100))}
-              </Typography>
-              <Typography
-                sx={{
-                  color: '#2196f3',
+                  color: 'white',
                   fontWeight: 'bold',
-                  fontSize: '1rem',
+                  fontSize: '1rem'
                 }}
               >
-                {formatCurrency(game.base_price)}
+                ${game.base_price}
               </Typography>
-            </Box>
+            )}
           </Box>
         </CardContent>
       </Card>

@@ -24,7 +24,6 @@ import { isAuthenticated, logout } from '../services/auth';
 const pages = [
   { name: 'Inicio', path: '/' },
   { name: 'Juegos', path: '/games' },
-  { name: 'Nuevos Lanzamientos', path: '/new' },
   { name: 'Ofertas', path: '/deals' },
   { name: 'Acerca de', path: '/about' }
 ];

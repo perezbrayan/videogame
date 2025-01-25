@@ -19,6 +19,8 @@ import {
 } from '@mui/icons-material';
 import GamesList from './GamesList';
 import GameForm from './GameForm';
+import FeaturedGames from './FeaturedGames';
+import axios from 'axios';
 
 const AdminPanel = () => {
   const [currentTab, setCurrentTab] = useState(0);
@@ -31,6 +33,33 @@ const AdminPanel = () => {
 
   const handleAddGame = () => {
     setShowAddGame(true);
+  };
+
+  const handleSubmit = async (formData) => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+
+      const response = await axios.post(
+        'http://localhost:5000/api/games',
+        formData,
+        config
+      );
+
+      console.log('Juego creado:', response.data);
+      setShowAddGame(false);
+      // Recargar la lista de juegos
+      window.location.reload();
+      return response.data;
+    } catch (error) {
+      console.error('Error al crear el juego:', error);
+      throw error;
+    }
   };
 
   return (
@@ -118,6 +147,11 @@ const AdminPanel = () => {
                 iconPosition="start"
                 sx={{ minHeight: 64 }}
               />
+              <Tab
+                label="Juegos Destacados"
+                iconPosition="start"
+                sx={{ minHeight: 64 }}
+              />
             </Tabs>
           </Box>
 
@@ -163,7 +197,10 @@ const AdminPanel = () => {
                     </Button>
                   </Box>
                   {showAddGame ? (
-                    <GameForm onClose={() => setShowAddGame(false)} />
+                    <GameForm 
+                      onClose={() => setShowAddGame(false)} 
+                      onSubmit={handleSubmit}
+                    />
                   ) : (
                     <GamesList />
                   )}
@@ -191,6 +228,18 @@ const AdminPanel = () => {
                     Usuarios
                   </Typography>
                   {/* Add users content here */}
+                </Box>
+              </Fade>
+            )}
+
+            {/* Featured Games Panel */}
+            {currentTab === 4 && (
+              <Fade in={currentTab === 4}>
+                <Box>
+                  <Typography variant="h5" gutterBottom>
+                    Juegos Destacados
+                  </Typography>
+                  <FeaturedGames />
                 </Box>
               </Fade>
             )}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { setAuthToken } from '../../services/auth';
 import {
   Container,
   Paper,
@@ -29,11 +30,35 @@ const AdminDashboard = () => {
   const [selectedGame, setSelectedGame] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
+  const getAuthConfig = () => {
+    const token = localStorage.getItem('token');
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+  };
+
+  const getMultipartConfig = () => {
+    const token = localStorage.getItem('token');
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    };
+  };
+
   const fetchGames = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/games');
+      const response = await axios.get('http://localhost:5000/api/games', getAuthConfig());
       setGames(response.data);
     } catch (error) {
+      if (error.response?.status === 401) {
+        alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
+        // Redirect to login page or handle authentication error
+      }
       console.error('Error fetching games:', error);
     }
   };
@@ -45,9 +70,12 @@ const AdminDashboard = () => {
   const handleDelete = async (gameId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este juego?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/games/${gameId}`);
+        await axios.delete(`http://localhost:5000/api/games/${gameId}`, getAuthConfig());
         fetchGames();
       } catch (error) {
+        if (error.response?.status === 401) {
+          alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
+        }
         console.error('Error deleting game:', error);
       }
     }
@@ -72,16 +100,44 @@ const AdminDashboard = () => {
   };
 
   const handleFormSubmit = async (formData) => {
+    if (!formData) {
+      console.error('No se recibieron datos del formulario');
+      throw new Error('No se recibieron datos del formulario');
+    }
+
     try {
-      if (isEditing) {
-        await axios.put(`http://localhost:5000/api/games/${selectedGame.game_id}`, formData);
+      const config = getMultipartConfig();
+      console.log('Enviando datos con config:', config);
+      console.log('FormData recibido:', Object.fromEntries(formData));
+
+      let response;
+      if (isEditing && selectedGame) {
+        response = await axios.put(
+          `http://localhost:5000/api/games/${selectedGame.game_id}`,
+          formData,
+          config
+        );
+        console.log('Respuesta de actualización:', response.data);
       } else {
-        await axios.post('http://localhost:5000/api/games', formData);
+        response = await axios.post(
+          'http://localhost:5000/api/games',
+          formData,
+          config
+        );
+        console.log('Respuesta de creación:', response.data);
       }
+
+      await fetchGames();
       handleCloseDialog();
-      fetchGames();
+      return response.data;
     } catch (error) {
       console.error('Error submitting form:', error);
+      if (error.response?.status === 401) {
+        alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
+      } else {
+        alert(error.response?.data?.message || 'Error al procesar la solicitud');
+      }
+      throw error;
     }
   };
 
@@ -141,19 +197,21 @@ const AdminDashboard = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {isEditing ? 'Editar Juego' : 'Agregar Nuevo Juego'}
-        </DialogTitle>
-        <DialogContent>
-          <GameForm
-            initialData={selectedGame}
-            onSubmit={handleFormSubmit}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancelar</Button>
-        </DialogActions>
+      <Dialog 
+        open={openDialog} 
+        onClose={handleCloseDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: { overflow: 'visible' }
+        }}
+      >
+        <GameForm
+          key={openDialog ? 'open' : 'closed'}
+          initialData={selectedGame}
+          onSubmit={handleFormSubmit}
+          onClose={handleCloseDialog}
+        />
       </Dialog>
     </Container>
   );

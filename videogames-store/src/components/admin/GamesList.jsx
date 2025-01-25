@@ -20,8 +20,9 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { getGames, deleteGame } from '../../services/games';
-import { isAuthenticated } from '../../services/auth';
+import { isAuthenticated, setAuthToken } from '../../services/auth';
 import GameForm from './GameForm';
+import axios from 'axios';
 
 const GamesList = () => {
   const [games, setGames] = useState([]);
@@ -58,12 +59,22 @@ const GamesList = () => {
     }
 
     try {
-      await deleteGame(selectedGame.game_id);
+      // Asegurarnos de que el token está configurado
+      const token = localStorage.getItem('token');
+      if (token) {
+        setAuthToken(token);
+      }
+
+      await axios.delete(`http://localhost:5000/api/games/${selectedGame.game_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
       setSuccessMessage('Juego eliminado exitosamente');
-      fetchGames();
+      await fetchGames();
       setOpenDialog(false);
     } catch (err) {
-      setError(err.message || 'Error al eliminar el juego');
+      setError(err.response?.data?.message || 'Error al eliminar el juego');
       console.error('Error deleting game:', err);
     }
   };
@@ -71,6 +82,61 @@ const GamesList = () => {
   const handleCloseSnackbar = () => {
     setError(null);
     setSuccessMessage('');
+  };
+
+  const handleEdit = (game) => {
+    setSelectedGame(game);
+    setOpenEditForm(true);
+  };
+
+  const handleSubmit = async (formData, config) => {
+    if (!isAuthenticated()) {
+      setError('Debes iniciar sesión para realizar esta acción');
+      return;
+    }
+
+    try {
+      // Asegurarnos de que el token está configurado
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No se encontró el token de autenticación');
+        return;
+      }
+
+      setAuthToken(token);
+
+      if (selectedGame) {
+        // Actualizar juego existente
+        await axios.put(
+          `http://localhost:5000/api/games/${selectedGame.game_id}`, 
+          formData,
+          config
+        );
+        setSuccessMessage('Juego actualizado exitosamente');
+      } else {
+        // Crear nuevo juego
+        const response = await axios.post(
+          'http://localhost:5000/api/games', 
+          formData,
+          config
+        );
+        console.log('Respuesta del servidor:', response.data);
+        setSuccessMessage('Juego creado exitosamente');
+      }
+      
+      // Recargar la lista de juegos
+      await fetchGames();
+      setOpenEditForm(false);
+      setSelectedGame(null);
+    } catch (err) {
+      console.error('Error al procesar el juego:', err);
+      setError(err.response?.data?.message || 'Error al procesar el juego');
+    }
+  };
+
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return 'https://via.placeholder.com/40x40?text=No+Image';
+    return `http://localhost:5000${imageUrl}`;
   };
 
   const columns = [
@@ -93,8 +159,12 @@ const GamesList = () => {
             objectFit: 'cover',
             borderRadius: 1
           }}
-          src={`http://localhost:5000${params.value}`}
+          src={getImageUrl(params.value)}
           alt={params.row.title}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = 'https://via.placeholder.com/40x40?text=No+Image';
+          }}
         />
       ),
     },
@@ -111,8 +181,7 @@ const GamesList = () => {
                 setError('Debes iniciar sesión para editar juegos');
                 return;
               }
-              setSelectedGame(params.row);
-              setOpenEditForm(true);
+              handleEdit(params.row);
             }}
           >
             <EditIcon />
@@ -186,21 +255,21 @@ const GamesList = () => {
 
       <Dialog
         open={openEditForm}
-        onClose={() => setOpenEditForm(false)}
+        onClose={() => {
+          setOpenEditForm(false);
+          setSelectedGame(null);
+        }}
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Editar Juego</DialogTitle>
-        <DialogContent>
-          <GameForm
-            initialData={selectedGame}
-            onSubmit={async () => {
-              await fetchGames();
-              setOpenEditForm(false);
-              setSuccessMessage('Juego actualizado exitosamente');
-            }}
-          />
-        </DialogContent>
+        <GameForm
+          initialData={selectedGame}
+          onClose={() => {
+            setOpenEditForm(false);
+            setSelectedGame(null);
+          }}
+          onSubmit={handleSubmit}
+        />
       </Dialog>
 
       <Snackbar

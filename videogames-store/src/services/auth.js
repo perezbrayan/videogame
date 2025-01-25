@@ -15,10 +15,21 @@ export const setAuthToken = (token) => {
 export const login = async (credentials) => {
   try {
     const response = await axios.post(`${API_URL}/auth/login`, credentials);
-    const { token } = response.data;
+    const { token, user } = response.data;
+    
+    if (!token) {
+      throw new Error('No se recibió el token de autenticación');
+    }
+    
+    // Guardar el token en localStorage y configurar axios
     setAuthToken(token);
+    
+    // También guardar la información del usuario
+    localStorage.setItem('user', JSON.stringify(user));
+    
     return response.data;
   } catch (error) {
+    console.error('Error en login:', error);
     throw error.response?.data || { message: 'Error al iniciar sesión' };
   }
 };

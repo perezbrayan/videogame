@@ -25,7 +25,8 @@ app.get('/', (req, res) => {
       games: '/api/games',
       platforms: '/api/platforms',
       categories: '/api/categories',
-      developers: '/api/developers'
+      developers: '/api/developers',
+      featured: '/api/featured'
     }
   });
 });
@@ -36,6 +37,7 @@ app.use('/api/games', require('./routes/games'));
 app.use('/api/platforms', require('./routes/platforms'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/developers', require('./routes/developers'));
+app.use('/api/featured', require('./routes/featured'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
