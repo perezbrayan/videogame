@@ -1,13 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider, CssBaseline, Container } from '@mui/material'
 import { createTheme } from '@mui/material/styles'
-import Navbar from './components/Navbar'
+import { AuthProvider } from './contexts/AuthContext'
+import Navbar from './components/common/Navbar'
 import HomePage from './components/HomePage'
 import GamesPage from './components/games/GamesPage'
 import GameDetails from './components/games/GameDetails'
 import AdminPanel from './components/admin/AdminPanel'
 import LoginPage from './components/auth/LoginPage'
 import PrivateRoute from './components/auth/PrivateRoute'
+import OffersPage from './components/games/OffersPage'
+import RegisterPage from './components/auth/RegisterPage'
 
 const theme = createTheme({
   components: {
@@ -39,7 +42,8 @@ const theme = createTheme({
           height: '100%',
           margin: 0,
           padding: 0,
-          maxWidth: '100%'
+          maxWidth: '100%',
+          position: 'relative'
         }
       },
     },
@@ -81,6 +85,14 @@ const theme = createTheme({
         },
       },
     },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'transparent',
+          boxShadow: 'none',
+        }
+      }
+    }
   },
   palette: {
     mode: 'light',
@@ -90,6 +102,8 @@ const theme = createTheme({
     },
     primary: {
       main: '#1976d2',
+      light: '#42a5f5',
+      dark: '#1565c0',
     },
     secondary: {
       main: '#dc004e',
@@ -145,49 +159,53 @@ const theme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          minHeight: '100vh',
-          margin: 0,
-          padding: 0,
-          width: '100%',
-          overflowX: 'hidden',
-          backgroundColor: theme.palette.background.default
-        }}>
-          <Navbar />
-          <Container 
-            sx={{ 
-              flexGrow: 1,
-              padding: 0,
-              margin: 0,
-              maxWidth: '100% !important',
-              width: '100%',
-            }}
-          >
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/games" element={<GamesPage />} />
-              <Route path="/games/:id" element={<GameDetails />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route 
-                path="/admin/*" 
-                element={
-                  <PrivateRoute>
-                    <AdminPanel />
-                  </PrivateRoute>
-                } 
-              />
-              {/* Redirigir rutas no encontradas al inicio */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Container>
-        </div>
-      </Router>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '100vh',
+            margin: 0,
+            padding: 0,
+            width: '100%',
+            overflowX: 'hidden',
+            backgroundColor: theme.palette.background.default
+          }}>
+            <Navbar />
+            <Container 
+              sx={{ 
+                flexGrow: 1,
+                padding: 0,
+                margin: 0,
+                maxWidth: '100% !important',
+                width: '100%',
+              }}
+            >
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/games" element={<GamesPage />} />
+                <Route path="/games/:id" element={<GameDetails />} />
+                <Route path="/offers" element={<OffersPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route 
+                  path="/admin/*" 
+                  element={
+                    <PrivateRoute>
+                      <AdminPanel />
+                    </PrivateRoute>
+                  } 
+                />
+                {/* Redirigir rutas no encontradas al inicio */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Container>
+          </div>
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
   )
 }
 

@@ -129,6 +129,33 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [featuredGames, setFeaturedGames] = useState([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [platformCounts, setPlatformCounts] = useState({
+    ps5: 0,
+    xbox: 0,
+    pc: 0,
+    switch: 0
+  });
+
+  useEffect(() => {
+    const fetchPlatformCounts = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/games');
+        const games = response.data.games || [];
+        
+        // Contar juegos por plataforma
+        const counts = games.reduce((acc, game) => {
+          acc[game.platform] = (acc[game.platform] || 0) + 1;
+          return acc;
+        }, {});
+        
+        setPlatformCounts(counts);
+      } catch (error) {
+        console.error('Error fetching platform counts:', error);
+      }
+    };
+
+    fetchPlatformCounts();
+  }, []);
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -180,26 +207,26 @@ const HomePage = () => {
   const platforms = [
     {
       icon: ConsoleIcon,
-      name: "PlayStation 5",
-      games: "2,500+ games",
+      name: "PlayStation",
+      games: `${platformCounts.ps5 || 0} juegos`,
       id: "ps5"
     },
     {
       icon: ConsoleIcon,
-      name: "Xbox Series X",
-      games: "2,000+ games",
+      name: "Xbox",
+      games: `${platformCounts.xbox || 0} juegos`,
       id: "xbox"
     },
     {
       icon: PCIcon,
       name: "Gaming PC",
-      games: "10,000+ games",
+      games: `${platformCounts.pc || 0} juegos`,
       id: "pc"
     },
     {
       icon: NintendoIcon,
       name: "Nintendo Switch",
-      games: "3,000+ games",
+      games: `${platformCounts.switch || 0} juegos`,
       id: "switch"
     }
   ];

@@ -44,7 +44,7 @@ export const register = async (userData) => {
 };
 
 export const logout = () => {
-  setAuthToken(null);
+  localStorage.removeItem('token');
 };
 
 export const isAuthenticated = () => {

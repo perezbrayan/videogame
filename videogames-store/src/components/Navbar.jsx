@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -13,39 +13,87 @@ import {
   ListItem,
   ListItemText,
   ListItemButton,
-  InputBase,
-  Tooltip,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { isAuthenticated, logout } from '../services/auth';
 
 const pages = [
   { name: 'Inicio', path: '/' },
   { name: 'Juegos', path: '/games' },
-  { name: 'Ofertas', path: '/deals' },
-  { name: 'Acerca de', path: '/about' }
+  { name: 'Ofertas', path: '/offers' },
 ];
 
+const navStyles = {
+  mainNav: {
+    background: '#1976d2',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+    position: 'fixed',
+    width: '100%',
+    top: 0,
+    left: 0,
+    zIndex: 1100,
+  },
+  logo: {
+    fontFamily: "'Press Start 2P', cursive",
+    fontSize: '1.2rem',
+    color: '#ffffff',
+    textDecoration: 'none',
+    textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'scale(1.05)',
+      textShadow: '2px 2px 8px rgba(0, 0, 0, 0.5)',
+    },
+  },
+  navLink: {
+    color: '#ffffff !important',
+    fontSize: '0.95rem',
+    fontWeight: '500 !important',
+    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
+    position: 'relative',
+    padding: '6px 16px',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.15) !important',
+      transform: 'translateY(-2px)',
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      bottom: 0,
+      left: '10%',
+      width: '0%',
+      height: '2px',
+      backgroundColor: '#ffffff',
+      transition: 'width 0.3s ease',
+    },
+    '&:hover::after': {
+      width: '80%',
+    },
+  },
+};
+
 function Navbar() {
-  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isLoggedIn = isAuthenticated();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
-      <Typography variant="h6" sx={{ my: 2 }}>
-        VIDEOGAMES STORE
+    <Box sx={{ ...navStyles.mainNav, height: '100%' }}>
+      <Typography
+        variant="h6"
+        component={RouterLink}
+        to="/"
+        sx={{
+          ...navStyles.logo,
+          p: 2,
+          display: 'block',
+          textAlign: 'center',
+        }}
+      >
+        GAME STORE
       </Typography>
       <List>
         {pages.map((page) => (
@@ -53,213 +101,75 @@ function Navbar() {
             <ListItemButton
               component={RouterLink}
               to={page.path}
-              sx={{ textAlign: 'center' }}
+              sx={{
+                ...navStyles.navLink,
+                textAlign: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <ListItemText primary={page.name} />
+              <ListItemText 
+                primary={page.name}
+                primaryTypographyProps={{
+                  style: {
+                    fontWeight: 500,
+                    textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
+                  }
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
-        {isLoggedIn && (
-          <ListItem disablePadding>
-            <ListItemButton
-              component={RouterLink}
-              to="/admin"
-              sx={{ textAlign: 'center' }}
-            >
-              <ListItemText primary="Panel Admin" />
-            </ListItemButton>
-          </ListItem>
-        )}
       </List>
     </Box>
   );
 
   return (
-    <AppBar 
-      position="fixed" 
-      sx={{ 
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)',
-        boxShadow: 'none',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        zIndex: 1100
-      }}
-    >
-      <Container maxWidth="xl">
-        <Toolbar 
-          disableGutters 
-          sx={{ 
-            minHeight: '70px',
-            padding: '0 16px'
-          }}
-        >
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ 
-              mr: 2, 
-              display: { sm: 'none' },
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                transform: 'scale(1.05)',
-              },
-              transition: 'all 0.2s ease-in-out'
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-          
-          <Typography
-            variant="h6"
-            noWrap
-            component={RouterLink}
-            to="/"
-            sx={{
-              mr: 3,
-              display: { xs: 'none', sm: 'flex' },
-              fontWeight: 800,
-              fontSize: '1.5rem',
-              letterSpacing: '0.5px',
-              color: 'white',
-              textDecoration: 'none',
-              '&:hover': {
-                color: 'white',
-                transform: 'scale(1.02)',
-              },
-              transition: 'all 0.2s ease-in-out'
-            }}
-          >
-            VIDEOGAMES STORE
-          </Typography>
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="fixed" sx={navStyles.mainNav}>
+        <Container maxWidth="xl">
+          <Toolbar disableGutters>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{
+                mr: 2,
+                display: { sm: 'none' },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
 
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, gap: '8px' }}>
-            {pages.map((page) => (
-              <Button
-                key={page.name}
-                component={RouterLink}
-                to={page.path}
-                sx={{ 
-                  py: 1,
-                  px: 2,
-                  color: 'white', 
-                  display: 'block',
-                  fontSize: '0.95rem',
-                  fontWeight: 500,
-                  borderRadius: '8px',
-                  textTransform: 'none',
-                  '&:hover': {
-                    color: 'white',
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    transform: 'translateY(-2px)',
-                  },
-                  transition: 'all 0.2s ease-in-out'
-                }}
-              >
-                {page.name}
-              </Button>
-            ))}
+            <Typography
+              variant="h6"
+              noWrap
+              component={RouterLink}
+              to="/"
+              sx={{
+                ...navStyles.logo,
+                mr: 2,
+                display: { xs: 'none', md: 'flex' },
+              }}
+            >
+              GAME STORE
+            </Typography>
 
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              marginLeft: 'auto',
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '8px',
-              padding: '4px 8px',
-              marginRight: '8px'
-            }}>
-              <InputBase
-                placeholder="Buscar juegos..."
-                sx={{
-                  color: 'white',
-                  '& input': {
-                    padding: '4px 8px',
-                    fontSize: '0.95rem',
-                    '&::placeholder': {
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      opacity: 1
-                    }
-                  },
-                  width: '200px'
-                }}
-              />
-              <IconButton 
-                sx={{ 
-                  color: 'white',
-                  padding: '4px',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  }
-                }}
-              >
-                <SearchIcon />
-              </IconButton>
-            </Box>
-
-            {isLoggedIn && (
-              <Button
-                component={RouterLink}
-                to="/admin"
-                sx={{ 
-                  py: 1,
-                  px: 2,
-                  color: 'white', 
-                  display: 'block',
-                  fontSize: '0.95rem',
-                  fontWeight: 500,
-                  borderRadius: '8px',
-                  textTransform: 'none',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  '&:hover': {
-                    color: 'white',
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                    transform: 'translateY(-2px)',
-                  },
-                  transition: 'all 0.2s ease-in-out'
-                }}
-              >
-                Panel Admin
-              </Button>
-            )}
-          </Box>
-
-          <Box sx={{ flexGrow: 0 }}>
-            {isLoggedIn ? (
-              <Tooltip title="Cerrar Sesión">
-                <IconButton
-                  onClick={handleLogout}
-                  sx={{ 
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                      transform: 'rotate(90deg)',
-                    },
-                    transition: 'all 0.3s ease-in-out'
-                  }}
+            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, ml: 4 }}>
+              {pages.map((page) => (
+                <Button
+                  key={page.name}
+                  component={RouterLink}
+                  to={page.path}
+                  sx={navStyles.navLink}
                 >
-                  <LogoutIcon />
-                </IconButton>
-              </Tooltip>
-            ) : (
-              <Button
-                component={RouterLink}
-                to="/login"
-                sx={{ 
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                  }
-                }}
-              >
-                Iniciar Sesión
-              </Button>
-            )}
-          </Box>
-        </Toolbar>
-      </Container>
+                  {page.name}
+                </Button>
+              ))}
+            </Box>
+          </Toolbar>
+        </Container>
+      </AppBar>
 
       <Drawer
         variant="temporary"
@@ -267,16 +177,22 @@ function Navbar() {
         open={mobileOpen}
         onClose={handleDrawerToggle}
         ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
+          keepMounted: true,
         }}
         sx={{
           display: { xs: 'block', sm: 'none' },
-          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: 240,
+            backgroundColor: 'transparent',
+          },
         }}
       >
         {drawer}
       </Drawer>
-    </AppBar>
+
+      <Toolbar />
+    </Box>
   );
 }
 

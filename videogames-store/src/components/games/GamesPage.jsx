@@ -33,8 +33,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 const platforms = [
   { id: 'all', name: 'Todas las plataformas', icon: <ConsoleIcon /> },
-  { id: 'ps5', name: 'PlayStation 5', icon: <ConsoleIcon /> },
-  { id: 'xbox', name: 'Xbox Series X', icon: <ConsoleIcon /> },
+  { id: 'ps5', name: 'PlayStation', icon: <ConsoleIcon /> },
+  { id: 'xbox', name: 'Xbox', icon: <ConsoleIcon /> },
   { id: 'pc', name: 'PC', icon: <PCIcon /> },
   { id: 'switch', name: 'Nintendo Switch', icon: <NintendoIcon /> }
 ];
@@ -355,8 +355,8 @@ const GamesPage = () => {
               }}
             >
               <MenuItem value="all">Todas las plataformas</MenuItem>
-              <MenuItem value="ps5">PlayStation 5</MenuItem>
-              <MenuItem value="xbox">Xbox Series X</MenuItem>
+              <MenuItem value="ps5">PlayStation</MenuItem>
+              <MenuItem value="xbox">Xbox</MenuItem>
               <MenuItem value="pc">PC</MenuItem>
               <MenuItem value="switch">Nintendo Switch</MenuItem>
             </Select>

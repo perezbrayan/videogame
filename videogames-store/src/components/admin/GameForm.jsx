@@ -240,8 +240,8 @@ const GameForm = ({ onClose, initialData = null, onSubmit }) => {
                         label="Plataforma"
                         onChange={handleChange}
                       >
-                        <MenuItem value="ps5">PlayStation 5</MenuItem>
-                        <MenuItem value="xbox">Xbox Series X</MenuItem>
+                        <MenuItem value="ps5">PlayStation</MenuItem>
+                        <MenuItem value="xbox">Xbox</MenuItem>
                         <MenuItem value="pc">PC</MenuItem>
                         <MenuItem value="switch">Nintendo Switch</MenuItem>
                       </Select>
